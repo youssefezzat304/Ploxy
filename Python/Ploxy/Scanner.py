@@ -1,4 +1,4 @@
-from typing import List, Optional, Any, Dict
+from typing import Optional, Any, Dict
 from Token import Token
 from TokenType import TokenType
 
@@ -25,12 +25,12 @@ class Scanner:
         }
     
     self.source: str = source
-    self.tokens: List[Token] = []
+    self.tokens: list[Token] = []
     self.start: int = 0
     self.current: int = 0
     self.line: int = 1
     
-  def scanTokens(self) -> List[Token]:
+  def scanTokens(self) -> list[Token]:
     while not self.__isAtEnd():
       self.start = self.current
       self.__scanToken()
@@ -143,7 +143,7 @@ class Scanner:
   
   def __peekNext(self) -> str:
     if self.current + 1 >= len(self.source): return '\0'
-    
+
     return self.source[self.current + 1]
   
   def __isAlpha(self, c) -> bool:
