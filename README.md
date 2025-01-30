@@ -4,3 +4,8 @@ This repository contains an implementation of the Lox programming language from 
 
 1. **Python Implementation (Part I)** : A tree-walk interpreter for the Lox language, following the first part of the book. This serves as an accessible and concise implementation.
 2. **C++ Implementation (Part II)** : A high-performance bytecode interpreter for Lox, built during the second part of the book.
+
+
+# Conventions
+
+* The double underscore `__` signifies that the method is private and meant for use only within its own class.
