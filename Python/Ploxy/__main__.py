@@ -1,10 +1,10 @@
 from sys import argv, exit
-from Ploxy import Lox
+from Lox import Lox
 
 def main():
   print("Welcome to Ploxy!")
   if len(argv) > 1:
-    print("Usage: jlox [script]")
+    print("Usage: lox [script]")
     exit(64)
   elif len(argv) == 2:
     Lox.runFile(argv[1])

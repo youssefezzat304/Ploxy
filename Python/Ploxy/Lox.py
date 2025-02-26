@@ -5,9 +5,13 @@ from TokenType import TokenType
 from Parser import Parser
 from Expr import Expr
 from AstPrinter import AstPrinter
+from RuntimeError import RuntimeException
+from Interpreter import Interpreter
 
 class Lox:
-  had_error: bool = False
+  interpreter: Interpreter = Interpreter()
+  hadError: bool = False
+  hadRuntimeError: bool = False
   
   @staticmethod
   def runFile(path: str) -> None:
@@ -15,19 +19,20 @@ class Lox:
         contents = file.read()
     Lox.__run(contents)
     
-    if had_error:
+    if Lox.hadError:
       sys.exit(65)
+    if Lox.hadRuntimeError:
+      sys.exit(70)
     
   @staticmethod
   def runPrompt() -> None:
-    global had_error
     while True:
       line: str = input(">> ")
       if line is None:
         break
       Lox.__run(line)
       
-      had_error = False
+      Lox.hadError = False
       
   @staticmethod
   def __run(source: str) -> None:
@@ -36,9 +41,14 @@ class Lox:
     parser: Parser = Parser(tokens)
     expression: Expr = parser.parse()
     
-    if had_error: return
+    if Lox.hadError: return
     
-    print(AstPrinter().print(expression))
+    Lox.interpreter.interpret(expression)
+    
+  @staticmethod
+  def runtimeError(error: RuntimeException) -> None:
+    print(f"{error}\n[line {error.token.line}]", file=sys.stderr)
+    Lox.hadRuntimeError = True
     
   @staticmethod
   def errorl(line: int, message:str) -> None:
@@ -53,7 +63,6 @@ class Lox:
     
   @staticmethod
   def __report(line: int, where: str, message: str) -> None:
-    global had_error
     print(f"[line {line}] Error {where}: {message}", file = sys.stderr)
-    had_error = True
+    Lox.hadError = True
     

@@ -1,7 +1,7 @@
 from Token import Token
 from Expr import Expr, Binary, Unary, Literal, Grouping
 from TokenType import TokenType
-from Ploxy import Lox
+
 
 class Parser:
   class ParseError(Exception):
@@ -16,7 +16,7 @@ class Parser:
   
   def parse(self) -> Expr:
     try:
-      return self.expression()
+      return self.__expression()
     except Parser.ParseError as error:
       return None
   
@@ -82,8 +82,6 @@ class Parser:
       return Grouping(expr)
     
     raise self.__error(self.__peek(), "Expect expression.")
-  
-
     
   def __consume(self, type:TokenType, message:str) -> Token:
     if self.__match(type): return self.__advance()
@@ -91,6 +89,7 @@ class Parser:
     raise self.__error(self.__peek(), message)
   
   def __error(self, token:Token, message:str) -> "Parser.ParseError":
+    from Lox import Lox
     Lox.errort(token, message)
     return Parser.ParseError()
   

@@ -91,7 +91,7 @@ class Scanner:
       elif self.__isAlpha(c):
         self.__identifier()
       else:
-        from Ploxy import Lox
+        from Lox import Lox
         Lox.error(self.line, "Unexpected character")
 ## /< scan-token ###
 
@@ -116,7 +116,7 @@ class Scanner:
     self.__addToken(TokenType.NUMBER, float(self.source[self.start:self.current]))
     
   def __string(self) -> None:
-    from Ploxy import Lox
+    from Lox import Lox
     while self.__peek() != '"' and not self.__isAtEnd():
       if self.__peek() == "\n": self.line += 1    
       self.__advance()

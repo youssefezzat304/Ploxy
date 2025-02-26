@@ -9,3 +9,4 @@ venv.bak/
 lox/
 __pycache__/
 Ploxy.egg-info/
+.idea/
