@@ -7,6 +7,7 @@ from Expr import Expr
 from AstPrinter import AstPrinter
 from RuntimeError import RuntimeException
 from Interpreter import Interpreter
+from Stmt import Stmt
 
 class Lox:
   interpreter: Interpreter = Interpreter()
@@ -39,11 +40,11 @@ class Lox:
     scanner: Scanner = Scanner(source)
     tokens: list[Token] = scanner.scanTokens()
     parser: Parser = Parser(tokens)
-    expression: Expr = parser.parse()
+    statments: list[Stmt] = parser.parse()
     
     if Lox.hadError: return
     
-    Lox.interpreter.interpret(expression)
+    Lox.interpreter.interpret(statments)
     
   @staticmethod
   def runtimeError(error: RuntimeException) -> None:

@@ -35,7 +35,7 @@ class Scanner:
       self.start = self.current
       self.__scanToken()
       
-    self.tokens.append(Token("EOF", "", None, self.line))
+    self.tokens.append(Token(TokenType.EOF, "", None, self.line))
     return self.tokens
   
 ## /> scan-token  ###
@@ -99,8 +99,9 @@ class Scanner:
     while self.__isAlphaNumeric(self.__peek()): self.__advance()
     
     text: str = self.source[self.start:self.current]
-    type: TokenType = self.keywords[text]
-    if type == None: type = TokenType.IDENTIFIER;
+    type: TokenType = self.keywords.get(text)
+    if type is None: 
+      type = TokenType.IDENTIFIER
     self.__addToken(type)
     
   def __number(self) -> None:

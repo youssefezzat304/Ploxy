@@ -1,27 +1,30 @@
-from Expr import Expr, Literal, Grouping, Unary, Binary
+from Expr import Expr, Literal, Grouping, Unary, Binary, Variable, Assign
 from TokenType import TokenType
 from Token import Token
 from RuntimeError import RuntimeException
+from Stmt import Stmt, Expression, Print, Var, Block
+from Environment import Environment
 
-class Interpreter(Expr.Visitor[object]):
-  def __init__(self):
-    pass
+class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
+  def __init__(self) -> None:
+    self.environment: Environment = Environment()
   
-  def interpret(self, expression: Expr) -> None:
-    from Ploxy.Lox import Lox
+  def interpret(self, statments: list[Stmt]) -> None:
+    from Lox import Lox
     try:
-      value: object = self.__evaluate(expression)
-      print(self.__stringify(value))
+      for statment in statments:
+        self.__execute(statment)
     except RuntimeException as error:
       Lox.runtimeError(error)
-  def visitLiteralExpr(self, expr: Literal) -> object:
+      
+  def visitLiteralExpr(self, expr: Literal) -> any:
     return expr.value
   
-  def visitGroupingExpr(self, expr: Grouping) -> object:
+  def visitGroupingExpr(self, expr: Grouping) -> any:
     return self.__evaluate(expr.expression)
   
-  def visitUnaryExpr(self, expr: Unary) -> object:
-    right: object = self.__evaluate(expr.right)
+  def visitUnaryExpr(self, expr: Unary) -> any:
+    right: any = self.__evaluate(expr.right)
     
     if expr.operator.type == TokenType.MINUS:
       self.__checkNumberOperands(expr.operator, right)
@@ -31,9 +34,9 @@ class Interpreter(Expr.Visitor[object]):
     
     return None
   
-  def visitBinaryExpr(self, expr: Binary) -> object:
-    left: object = self.__evaluate(expr.left)
-    right: object = self.__evaluate(expr.right)
+  def visitBinaryExpr(self, expr: Binary) -> any:
+    left: any = self.__evaluate(expr.left)
+    right: any = self.__evaluate(expr.right)
     
     if expr.operator.type == TokenType.BANG_EQUAL:
       return not self.__isEqual(left, right)
@@ -77,11 +80,72 @@ class Interpreter(Expr.Visitor[object]):
     
     return None
   
-  def __evaluate(self, expr: Expr) -> object:
+  def visitExpressionStmt(self, stmt: Expression) -> None:
+    self.__evaluate(stmt.expression)
+    return None
+  
+  def visitPrintStmt(self, stmt: Print) -> None:
+    value: any = self.__evaluate(stmt.expression)
+    print(self.__stringify(value))
+    return None
+  
+  def visitVarStmt(self, stmt: Var) -> None:
+    value: any = None
+    if stmt.initializer != None:
+      value = self.__evaluate(stmt.initializer)
+      
+    self.environment.define(stmt.name.lexeme, value)
+    return None
+  
+  def visitBlockStmt(self, stmt: Block) -> None:
+    self.executeBlock(stmt.statments, Environment(self.environment))
+    return None
+  
+  def visitAssignExpr(self, expr: Assign) -> any:
+    value: any = self.__evaluate(expr.value)
+    self.environment.assign(expr.name, value)
+    return value
+
+  def visitCallExpr(self, expr):
+    pass  # Implement later
+
+  def visitGetExpr(self, expr):
+    pass  # Implement later
+
+  def visitLogicalExpr(self, expr):
+    pass  # Implement later
+
+  def visitSetExpr(self, expr):
+    pass  # Implement later
+
+  def visitSuperExpr(self, expr):
+    pass  # Implement later
+
+  def visitThisExpr(self, expr):
+    pass  # Implement later
+
+  def visitVariableExpr(self, expr: Variable) -> any:
+    return self.environment.get(expr.name)
+    
+  def __evaluate(self, expr: Expr) -> any:
     return expr.accept(self)
   
+  def __execute(self, stmt: Stmt) -> None:
+    stmt.accept(self)
+    
+  def executeBlock(self, statments: list[Stmt], environment: Environment) -> None:
+    previous: Environment = self.environment
+    try:
+      self.environment = environment
+      
+      for statment in statments:
+        self.__execute(statment)
+        
+    finally:
+      self.environment = previous
+  
   @staticmethod
-  def __isTruthy(obj: object) -> bool:
+  def __isTruthy(obj: any) -> bool:
     if obj is None:
         return False
     if isinstance(obj, bool):
@@ -89,7 +153,7 @@ class Interpreter(Expr.Visitor[object]):
     return True
   
   @staticmethod
-  def __isEqual(a: object, b:object) -> bool:
+  def __isEqual(a: any, b: any) -> bool:
     if a == None and b == None:
       return True
     
@@ -99,19 +163,19 @@ class Interpreter(Expr.Visitor[object]):
     return a == b
   
   @staticmethod
-  def __checkNumberOperand(operator: Token, operand: object) -> None:
+  def __checkNumberOperand(operator: Token, operand: any) -> None:
     if isinstance(operand, (int, float)):
       return
     raise RuntimeException(operator, "Operand must be a number.")
   
   @staticmethod
-  def __checkNumberOperands(operator: Token, left: object, right: object) -> None:
+  def __checkNumberOperands(operator: Token, left: any, right: any) -> None:
     if isinstance(left, (int, float)) and isinstance(right, (int, float)):
       return
     raise RuntimeException(operator, "Operands must be numbers.")
   
   @staticmethod
-  def __stringify(obj: object) -> str:
+  def __stringify(obj: any) -> str:
     if obj == None:
       return "nil"
     
