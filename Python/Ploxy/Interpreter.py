@@ -1,8 +1,8 @@
-from Expr import Expr, Literal, Grouping, Unary, Binary, Variable, Assign
+from Expr import Expr, Literal, Grouping, Unary, Binary, Variable, Assign, Logical
 from TokenType import TokenType
 from Token import Token
 from RuntimeError import RuntimeException
-from Stmt import Stmt, Expression, Print, Var, Block
+from Stmt import Stmt, Expression, Print, Var, Block, If, While
 from Environment import Environment
 
 class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
@@ -101,6 +101,20 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     self.executeBlock(stmt.statments, Environment(self.environment))
     return None
   
+  def visitIfStmt(self, stmt: If) -> None:
+    if self.__isTruthy(self.__evaluate(stmt.condition)):
+      self.__execute(stmt.thenBranch)
+    elif stmt.elseBranch != None:
+      self.__execute(stmt.elseBranch)
+      
+    return None
+  
+  def visitWhileStmt(self, stmt: While) -> None:
+    while self.__isTruthy(self.__evaluate(stmt.condition)):
+      self.__execute(stmt.body)
+      
+    return None
+  
   def visitAssignExpr(self, expr: Assign) -> any:
     value: any = self.__evaluate(expr.value)
     self.environment.assign(expr.name, value)
@@ -112,8 +126,15 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
   def visitGetExpr(self, expr):
     pass  # Implement later
 
-  def visitLogicalExpr(self, expr):
-    pass  # Implement later
+  def visitLogicalExpr(self, expr: Logical) -> any:
+    left: any = self.__evaluate(expr.left)
+    
+    if expr.operator.type == TokenType.OR:
+      if self.__isTruthy(left): return left
+    else:
+      if not self.__isTruthy(left): return left
+      
+    return self.__evaluate(expr.right)
 
   def visitSetExpr(self, expr):
     pass  # Implement later
