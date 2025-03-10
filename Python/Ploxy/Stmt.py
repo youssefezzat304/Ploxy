@@ -10,22 +10,28 @@ R = TypeVar('R')
 class Stmt(ABC):
     class Visitor(Protocol[R]):
        @abstractmethod
-       def visitBlockStmt(self, stmt: 'Expr.Block'):
+       def visitBlockStmt(self, stmt: 'Block'):
           pass
        @abstractmethod
-       def visitExpressionStmt(self, stmt: 'Expr.Expression'):
+       def visitExpressionStmt(self, stmt: 'Expression'):
           pass
        @abstractmethod
-       def visitIfStmt(self, stmt: 'Expr.If'):
+       def visitFunctionStmt(self, stmt: 'Function'):
           pass
        @abstractmethod
-       def visitPrintStmt(self, stmt: 'Expr.Print'):
+       def visitIfStmt(self, stmt: 'If'):
           pass
        @abstractmethod
-       def visitVarStmt(self, stmt: 'Expr.Var'):
+       def visitPrintStmt(self, stmt: 'Print'):
           pass
        @abstractmethod
-       def visitWhileStmt(self, stmt: 'Expr.While'):
+       def visitReturnStmt(self, stmt: 'Return'):
+          pass
+       @abstractmethod
+       def visitVarStmt(self, stmt: 'Var'):
+          pass
+       @abstractmethod
+       def visitWhileStmt(self, stmt: 'While'):
           pass
 
     @abstractmethod
@@ -46,6 +52,15 @@ class Expression(Stmt):
     def accept(self, visitor) -> R:
         return visitor.visitExpressionStmt(self)
 
+class Function(Stmt):
+    def __init__(self, name: Token, params: list[Token], body: list[Stmt]) -> None:
+        self.name = name
+        self.params = params
+        self.body = body
+
+    def accept(self, visitor) -> R:
+        return visitor.visitFunctionStmt(self)
+
 class If(Stmt):
     def __init__(self, condition: Expr, thenBranch: Stmt, elseBranch: Stmt) -> None:
         self.condition = condition
@@ -61,6 +76,14 @@ class Print(Stmt):
 
     def accept(self, visitor) -> R:
         return visitor.visitPrintStmt(self)
+
+class Return(Stmt):
+    def __init__(self, keyword: Token, value: Expr) -> None:
+        self.keyword = keyword
+        self.value = value
+
+    def accept(self, visitor) -> R:
+        return visitor.visitReturnStmt(self)
 
 class Var(Stmt):
     def __init__(self, name: Token, initializer: Expr) -> None:

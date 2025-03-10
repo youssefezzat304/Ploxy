@@ -6,10 +6,9 @@ class Environment:
     self.enclosing: Environment = enclosing
     self.values: dict[str, any] = {}
     
-    
   def get(self, name: Token) -> any:
     if name.lexeme in self.values:
-      return self.values.get(name.lexeme)
+      return self.values[name.lexeme]
     
     if self.enclosing != None:
       return self.enclosing.get(name)
@@ -26,6 +25,7 @@ class Environment:
     
     if self.enclosing != None:
       self.enclosing.assign(name, value)
+      return
       
     raise RuntimeException(name, f"Undefined variable '{name.lexeme}'.")
     

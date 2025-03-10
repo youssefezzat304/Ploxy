@@ -31,9 +31,11 @@ class GenerateAst:
     GenerateAst.__defineAst(outputDir, "Stmt", [
       "Block: list[Stmt] statements",
       "Expression : Expr expression",
+      "Function : Token name, list[Token] params," + " list[Stmt] body",
       "If : Expr condition, Stmt thenBranch," +
       " Stmt elseBranch",
       "Print : Expr expression",
+      "Return : Token keyword, Expr value",
       "Var : Token name, Expr initializer",
       "While : Expr condition, Stmt body"
     ])

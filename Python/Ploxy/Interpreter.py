@@ -1,13 +1,18 @@
-from Expr import Expr, Literal, Grouping, Unary, Binary, Variable, Assign, Logical
+from Expr import Expr, Literal, Grouping, Unary, Binary, Variable, Assign, Logical, Call
 from TokenType import TokenType
 from Token import Token
 from RuntimeError import RuntimeException
-from Stmt import Stmt, Expression, Print, Var, Block, If, While
+from Stmt import Stmt, Expression, Print, Var, Block, If, While, Function, Return
 from Environment import Environment
+from LoxCallable import LoxCallable
+from Return import Return
+import time
 
 class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
   def __init__(self) -> None:
-    self.environment: Environment = Environment()
+    self.globals: Environment = Environment()
+    self.environment: Environment = self.globals
+    self.globals.define("clock", ClockFunction())
   
   def interpret(self, statments: list[Stmt]) -> None:
     from Lox import Lox
@@ -84,10 +89,23 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     self.__evaluate(stmt.expression)
     return None
   
+  def visitFunctionStmt(self, stmt:Function) -> None:
+    from LoxFunction import LoxFunction
+    function: LoxFunction = LoxFunction(stmt, self.environment)
+    self.environment.define(stmt.name.lexeme, function)
+    return None
+  
   def visitPrintStmt(self, stmt: Print) -> None:
     value: any = self.__evaluate(stmt.expression)
     print(self.__stringify(value))
     return None
+  
+  def visitReturnStmt(self, stmt: Return) -> None:
+    value: any = None
+    if stmt.value != None:
+      value = self.__evaluate(stmt.value)
+    
+    raise Return(value)
   
   def visitVarStmt(self, stmt: Var) -> None:
     value: any = None
@@ -98,7 +116,7 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     return None
   
   def visitBlockStmt(self, stmt: Block) -> None:
-    self.executeBlock(stmt.statments, Environment(self.environment))
+    self.executeBlock(stmt.statements, Environment(self.environment))
     return None
   
   def visitIfStmt(self, stmt: If) -> None:
@@ -120,8 +138,22 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     self.environment.assign(expr.name, value)
     return value
 
-  def visitCallExpr(self, expr):
-    pass  # Implement later
+  def visitCallExpr(self, expr: Call) -> any:
+    callee: any = self.__evaluate(expr.callee)
+    arguments: list[any] = []
+    
+    for argument in expr.arguments:
+      arguments.append(self.__evaluate(argument))
+      
+    if not isinstance(callee, LoxCallable):
+      raise RuntimeException(expr.paren, "Can only call functions and classes.")
+      
+    function: LoxCallable = callee
+    
+    if len(arguments) != function.arity():
+      raise RuntimeException(expr.paren, f"Expected {function.arity()} arguments but got {len(arguments)}.")
+    
+    return function.call(self, arguments)
 
   def visitGetExpr(self, expr):
     pass  # Implement later
@@ -208,4 +240,14 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
       return text
     
     return str(obj)
+
+class ClockFunction(LoxCallable):
+  def arity(self) -> int:
+    return 0
+
+  def call(self, interpreter: Interpreter, arguments: list[any]) -> float:
+      return time.time()
+      
+  def __str__(self) -> str:
+    return "<native fn>"
   

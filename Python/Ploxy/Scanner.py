@@ -92,7 +92,7 @@ class Scanner:
         self.__identifier()
       else:
         from Lox import Lox
-        Lox.error(self.line, "Unexpected character")
+        Lox.errorl(self.line, "Unexpected character")
 ## /< scan-token ###
 
   def __identifier(self) -> None:
@@ -123,7 +123,7 @@ class Scanner:
       self.__advance()
     
     if self.__isAtEnd():
-      Lox.error(self.line, "Unterminated string.")
+      Lox.errorl(self.line, "Unterminated string.")
       return
     
     self.__advance()
