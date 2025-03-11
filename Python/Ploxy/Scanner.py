@@ -1,11 +1,11 @@
-from typing import Optional, Any, Dict
+from typing import Optional
 from Token import Token
 from TokenType import TokenType
 
 class Scanner:
   def __init__(self, source: str) -> None:
     
-    self.keywords: Dict[str, TokenType] = {
+    self.keywords: dict[str, TokenType] = {
             "and": TokenType.AND,
             "class": TokenType.CLASS,
             "else": TokenType.ELSE,
@@ -52,7 +52,6 @@ class Scanner:
     elif c == ';': self.__addToken(TokenType.SEMICOLON)
     elif c == '*': self.__addToken(TokenType.STAR)
 
-    # Handle two-character operators
     elif c == '!':
         self.__addToken(
             TokenType.BANG_EQUAL if self.__match('=') else TokenType.BANG
@@ -163,6 +162,6 @@ class Scanner:
     self.current += 1
     return self.source[self.current - 1]
   
-  def __addToken(self, type: TokenType, literal: Optional[Any] = None) -> None:
+  def __addToken(self, type: TokenType, literal: Optional[any] = None) -> None:
     text = self.source[self.start:self.current]
     self.tokens.append(Token(type, text, literal, self.line))      

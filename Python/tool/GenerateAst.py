@@ -29,7 +29,8 @@ class GenerateAst:
     ])
     
     GenerateAst.__defineAst(outputDir, "Stmt", [
-      "Block: list[Stmt] statements",
+      "Block : list[Stmt] statements",
+      "Class : Token name, list['Function'] methods",
       "Expression : Expr expression",
       "Function : Token name, list[Token] params," + " list[Stmt] body",
       "If : Expr condition, Stmt thenBranch," +

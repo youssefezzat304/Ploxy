@@ -1,20 +1,26 @@
-from Expr import Expr, Variable, Assign, Binary, Grouping, Call, Literal, Logical, Unary
-from Stmt import Stmt, Block, Var, Function, Expression, If, Print, While, Return
+from Expr import Expr, Variable, Assign, Binary, Grouping, Call, Literal, Logical, Unary, Get, Set, Super, This
+from Stmt import Stmt, Block, Var, Function, Expression, If, Print, While, Return, Class
 from Interpreter import Interpreter
 from collections import deque
 from Token import Token
-from Lox import Lox
 from enum import Enum
 
 class FunctionType(Enum):
-  NONE = 1
-  FUNCTION = 2
+  NONE = "NONE"
+  FUNCTION = "FUNCTION"
+  INITIALIZER = "INITIALIZER"
+  METHOD = "METHOD"
+  
+class ClassType(Enum):
+  NONE = "NONE"
+  CLASS = "CLASS"
 
 class Resolver(Expr.Visitor[None], Stmt.Visitor[None]):
   def __init__(self, interpreter: Interpreter):
     self.interpreter: Interpreter = interpreter
     self.scopes: deque = deque()
     self.currentFunction: FunctionType = FunctionType.NONE
+    self.currentClass: ClassType = ClassType.NONE
     
   def resolve(self, statments: list[Stmt]) -> None:
     for statment in statments:
@@ -24,6 +30,27 @@ class Resolver(Expr.Visitor[None], Stmt.Visitor[None]):
     self.beginScope()
     self.resolve(stmt.statements)
     self.endScope()
+    return None
+  
+  def visitClassStmt(self, stmt: Class) -> None:
+    enclosingClass: ClassType = self.currentClass
+    self.currentClass = ClassType.CLASS
+    
+    self.__declare(stmt.name)
+    self.__define(stmt.name)
+    
+    self.beginScope()
+    self.scopes[-1]["this"] = True
+    
+    for method in stmt.methods:
+      declaration: FunctionType = FunctionType.METHOD
+      if method.name.lexeme == "init":
+        declaration = FunctionType.INITIALIZER
+        
+      self.__resolveFunction(method, declaration)
+      
+    self.endScope()
+    self.currentClass = enclosingClass
     return None
   
   def visitExpressionStmt(self, stmt: Expression) -> None:
@@ -48,10 +75,14 @@ class Resolver(Expr.Visitor[None], Stmt.Visitor[None]):
     return None
   
   def visitReturnStmt(self, stmt: Return) -> None:
+    from Lox import Lox
     if self.currentFunction == FunctionType.NONE:
       Lox.errort(stmt.keyword, "Can't return from top-level code.")
       
     if stmt.value != None:
+      if self.currentFunction == FunctionType.INITIALIZER:
+        Lox.errort(stmt.keyword, "Can't return a value from an initializer.")
+        
       self.__resolveExpr(stmt.value)
       
     return None
@@ -91,6 +122,10 @@ class Resolver(Expr.Visitor[None], Stmt.Visitor[None]):
     
     return None
   
+  def visitGetExpr(self, expr: Get) -> None:
+    self.__resolveExpr(expr.object)
+    return None
+  
   def visitGroupingExpr(self, expr: Grouping) -> None:
     self.__resolveExpr(expr.expression)
     return None
@@ -103,7 +138,13 @@ class Resolver(Expr.Visitor[None], Stmt.Visitor[None]):
     self.__resolveExpr(expr.right)
     return None
   
+  def visitSetExpr(self, expr: Set) -> None:
+    self.__resolveExpr(expr.value)
+    self.__resolveExpr(expr.object)
+    return None
+  
   def visitVariableExpr(self, expr: Variable) -> None:
+    from Lox import Lox
     if self.scopes and self.scopes[-1].get(expr.name.lexeme) is False:
       isDeclared, _ = self.scopes[-1][expr.name.lexeme]
       if not isDeclared:
@@ -114,6 +155,19 @@ class Resolver(Expr.Visitor[None], Stmt.Visitor[None]):
     self.__resolveLocal(expr, expr.name)
     return None
   
+  def visitSuperExpr(self, expr):
+    # TODO: Implement handling for 'super' expressions
+    return None
+
+  def visitThisExpr(self, expr: This) -> None:
+    from Lox import Lox
+    if self.currentClass == ClassType.NONE:
+      Lox.errort(expr.keyword, "Can't use 'this' outside of a class.")
+      return None
+    
+    self.__resolveLocal(expr, expr.keyword)
+    return None
+  
   def __resolveStmt(self, stmt: Stmt) -> None:
     stmt.accept(self)
     
@@ -121,6 +175,7 @@ class Resolver(Expr.Visitor[None], Stmt.Visitor[None]):
     expr.accept(self)
     
   def __declare(self, name: Token) -> None:
+    from Lox import Lox
     if not self.scopes:
       return
     scope: dict[str, bool] = self.scopes[-1]

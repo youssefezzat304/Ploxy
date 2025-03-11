@@ -13,6 +13,9 @@ class Stmt(ABC):
        def visitBlockStmt(self, stmt: 'Block'):
           pass
        @abstractmethod
+       def visitClassStmt(self, stmt: 'Class'):
+          pass
+       @abstractmethod
        def visitExpressionStmt(self, stmt: 'Expression'):
           pass
        @abstractmethod
@@ -44,6 +47,14 @@ class Block(Stmt):
 
     def accept(self, visitor) -> R:
         return visitor.visitBlockStmt(self)
+
+class Class(Stmt):
+    def __init__(self, name: Token, methods: list['Function']) -> None:
+        self.name = name
+        self.methods = methods
+
+    def accept(self, visitor) -> R:
+        return visitor.visitClassStmt(self)
 
 class Expression(Stmt):
     def __init__(self, expression: Expr) -> None:

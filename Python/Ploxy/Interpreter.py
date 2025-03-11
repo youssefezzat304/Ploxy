@@ -1,11 +1,13 @@
-from Expr import Expr, Literal, Grouping, Unary, Binary, Variable, Assign, Logical, Call
+from Expr import Expr, Literal, Grouping, Unary, Binary, Variable, Assign, Logical, Call, Get, Set, Super, This
 from TokenType import TokenType
 from Token import Token
 from RuntimeError import RuntimeException
-from Stmt import Stmt, Expression, Print, Var, Block, If, While, Function, Return
+from Stmt import Stmt, Expression, Print, Var, Block, If, While, Function, Return, Class
 from Environment import Environment
 from LoxCallable import LoxCallable
 from Return import Return
+from LoxClass import LoxClass
+from LoxInstance import LoxInstance
 import time
 
 class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
@@ -92,7 +94,7 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
   
   def visitFunctionStmt(self, stmt:Function) -> None:
     from LoxFunction import LoxFunction
-    function: LoxFunction = LoxFunction(stmt, self.environment)
+    function: LoxFunction = LoxFunction(stmt, self.environment, False)
     self.environment.define(stmt.name.lexeme, function)
     return None
   
@@ -118,6 +120,19 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
   
   def visitBlockStmt(self, stmt: Block) -> None:
     self.executeBlock(stmt.statements, Environment(self.environment))
+    return None
+  
+  def visitClassStmt(self, stmt: Class) -> None:
+    from LoxFunction import LoxFunction
+    self.environment.define(stmt.name.lexeme, None)
+    
+    methods: dict[str, LoxFunction] = {}
+    for method in stmt.methods:
+      function: LoxFunction = LoxFunction(method, self.environment, method.name.lexeme == "init")
+      methods[method.name.lexeme] = function
+      
+    Klass: LoxClass = LoxClass(stmt.name.lexeme, methods)
+    self.environment.assign(stmt.name, Klass)
     return None
   
   def visitIfStmt(self, stmt: If) -> None:
@@ -162,8 +177,12 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     
     return function.call(self, arguments)
 
-  def visitGetExpr(self, expr):
-    pass  # Implement later
+  def visitGetExpr(self, expr: Get) -> any:
+    object: any = self.__evaluate(expr.object)
+    if isinstance(object, LoxInstance):
+      return object.get(expr.name)
+    
+    raise RuntimeException(expr.name, "Only instances have properties.")
 
   def visitLogicalExpr(self, expr: Logical) -> any:
     left: any = self.__evaluate(expr.left)
@@ -175,14 +194,21 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
       
     return self.__evaluate(expr.right)
 
-  def visitSetExpr(self, expr):
-    pass  # Implement later
-
+  def visitSetExpr(self, expr: Set) -> any:
+    object: any = self.__evaluate(expr.object)
+    
+    if not isinstance(object, LoxInstance):
+      raise RuntimeException(expr.name, "Only instances have fields.")
+    
+    value: any = self.__evaluate(expr.value)
+    object.set(expr.name, value)
+    return value
+      
   def visitSuperExpr(self, expr):
-    pass  # Implement later
+    pass  # TODO Implement later
 
-  def visitThisExpr(self, expr):
-    pass  # Implement later
+  def visitThisExpr(self, expr: This) -> any:
+    return self.__lookUpVariable(expr.keyword, expr)
 
   def visitVariableExpr(self, expr: Variable) -> any:
     return self.__lookUpVariable(expr.name, expr)
@@ -263,7 +289,7 @@ class ClockFunction(LoxCallable):
     return 0
 
   def call(self, interpreter: Interpreter, arguments: list[any]) -> float:
-      return time.time()
+    return time.time()
       
   def __str__(self) -> str:
     return "<native fn>"
