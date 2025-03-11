@@ -13,6 +13,7 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     self.globals: Environment = Environment()
     self.environment: Environment = self.globals
     self.globals.define("clock", ClockFunction())
+    self.locals: dict[Expr, int] = {}
   
   def interpret(self, statments: list[Stmt]) -> None:
     from Lox import Lox
@@ -135,7 +136,13 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
   
   def visitAssignExpr(self, expr: Assign) -> any:
     value: any = self.__evaluate(expr.value)
-    self.environment.assign(expr.name, value)
+    
+    distance: int = self.locals.get(expr)
+    if distance != None:
+      self.environment.assignAt(distance, expr.name, value)
+    else:
+      self.globals.assign(expr.name, value)
+
     return value
 
   def visitCallExpr(self, expr: Call) -> any:
@@ -178,13 +185,23 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     pass  # Implement later
 
   def visitVariableExpr(self, expr: Variable) -> any:
-    return self.environment.get(expr.name)
+    return self.__lookUpVariable(expr.name, expr)
+  
+  def __lookUpVariable(self, name: Token, expr: Expr) -> any:
+    distance: int = self.locals.get(expr)
+    if distance != None:
+      return self.environment.getAt(distance, name.lexeme)
+    else:
+      return self.globals.get(name)
     
   def __evaluate(self, expr: Expr) -> any:
     return expr.accept(self)
   
   def __execute(self, stmt: Stmt) -> None:
     stmt.accept(self)
+    
+  def resolve(self, expr: Expr, depth: int) -> None:
+    self.locals[expr] = depth
     
   def executeBlock(self, statments: list[Stmt], environment: Environment) -> None:
     previous: Environment = self.environment

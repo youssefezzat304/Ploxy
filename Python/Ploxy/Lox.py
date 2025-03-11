@@ -3,11 +3,10 @@ from Scanner import Scanner
 from Token import Token
 from TokenType import TokenType
 from Parser import Parser
-from Expr import Expr
-from AstPrinter import AstPrinter
 from RuntimeError import RuntimeException
 from Interpreter import Interpreter
 from Stmt import Stmt
+from Resolver import Resolver
 
 class Lox:
   interpreter: Interpreter = Interpreter()
@@ -41,6 +40,11 @@ class Lox:
     tokens: list[Token] = scanner.scanTokens()
     parser: Parser = Parser(tokens)
     statments: list[Stmt] = parser.parse()
+    
+    if Lox.hadError: return
+    
+    resolver: Resolver = Resolver(Lox.interpreter)
+    resolver.resolve(statments)
     
     if Lox.hadError: return
     
