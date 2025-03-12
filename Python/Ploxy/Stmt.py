@@ -3,7 +3,7 @@
 from typing import Protocol, TypeVar
 from Token import Token
 from abc import ABC, abstractmethod
-from Expr import Expr
+from Expr import Expr, Variable
 
 R = TypeVar('R')
 
@@ -49,8 +49,9 @@ class Block(Stmt):
         return visitor.visitBlockStmt(self)
 
 class Class(Stmt):
-    def __init__(self, name: Token, methods: list['Function']) -> None:
+    def __init__(self, name: Token, superclass: Variable, methods: list['Function']) -> None:
         self.name = name
+        self.superclass = superclass
         self.methods = methods
 
     def accept(self, visitor) -> R:

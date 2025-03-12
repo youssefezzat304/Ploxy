@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING
 from LoxCallable import LoxCallable
 from LoxFunction import LoxFunction
 
+if TYPE_CHECKING:
+  from Interpreter import Interpreter
+
 class LoxClass(LoxCallable):
-  def __init__(self, name: str, methods: dict[str, LoxFunction]) -> None:
+  def __init__(self, name: str, superclass: 'LoxClass', methods: dict[str, LoxFunction]) -> None:
+    self.superclass: 'LoxClass' = superclass
     self.name: str = name
     self.methods: dict[str, LoxFunction] = methods
     
@@ -13,9 +18,12 @@ class LoxClass(LoxCallable):
     if name in self.methods:
       return self.methods.get(name)
     
+    if self.superclass != None:
+      return self.superclass.findMethod(name)
+    
     return None
   
-  def call(self, interpreter, arguments: list[any]) -> any:
+  def call(self, interpreter: 'Interpreter', arguments: list[any]) -> any:
     from LoxInstance import LoxInstance
     instance: LoxInstance = LoxInstance(self)
     initializer: LoxFunction = self.findMethod("init")

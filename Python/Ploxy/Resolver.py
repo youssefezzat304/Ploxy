@@ -14,6 +14,7 @@ class FunctionType(Enum):
 class ClassType(Enum):
   NONE = "NONE"
   CLASS = "CLASS"
+  SUBCLASS = "SUBCLASS"
 
 class Resolver(Expr.Visitor[None], Stmt.Visitor[None]):
   def __init__(self, interpreter: Interpreter):
@@ -33,12 +34,24 @@ class Resolver(Expr.Visitor[None], Stmt.Visitor[None]):
     return None
   
   def visitClassStmt(self, stmt: Class) -> None:
+    from Lox import Lox
     enclosingClass: ClassType = self.currentClass
     self.currentClass = ClassType.CLASS
     
     self.__declare(stmt.name)
     self.__define(stmt.name)
     
+    if stmt.superclass != None and stmt.name.lexeme == stmt.superclass.name.lexeme:
+      Lox.errort(stmt.superclass.name, "A class can't inherit from itself.")
+      
+    if stmt.superclass != None:
+      self.currentClass = ClassType.SUBCLASS
+      self.__resolveExpr(stmt.superclass)
+      
+    if stmt.superclass != None:
+      self.beginScope()
+      self.scopes[-1]["super"] = True
+      
     self.beginScope()
     self.scopes[-1]["this"] = True
     
@@ -143,6 +156,16 @@ class Resolver(Expr.Visitor[None], Stmt.Visitor[None]):
     self.__resolveExpr(expr.object)
     return None
   
+  def visitSuperExpr(self, expr: Super) -> None:
+    from Lox import Lox
+    if self.currentClass == ClassType.NONE:
+      Lox.errort(expr.keyword, "Can't use 'super' outside of a class.")
+    elif self.currentClass != ClassType.SUBCLASS:
+      Lox.errort(expr.keyword, "Can't use 'super' in a class with no superclass.")
+      
+    self.__resolveLocal(expr, expr.keyword)
+    return None
+  
   def visitVariableExpr(self, expr: Variable) -> None:
     from Lox import Lox
     if self.scopes and self.scopes[-1].get(expr.name.lexeme) is False:
@@ -155,10 +178,6 @@ class Resolver(Expr.Visitor[None], Stmt.Visitor[None]):
     self.__resolveLocal(expr, expr.name)
     return None
   
-  def visitSuperExpr(self, expr):
-    # TODO: Implement handling for 'super' expressions
-    return None
-
   def visitThisExpr(self, expr: This) -> None:
     from Lox import Lox
     if self.currentClass == ClassType.NONE:
@@ -212,3 +231,4 @@ class Resolver(Expr.Visitor[None], Stmt.Visitor[None]):
     
   def endScope(self) -> None:
     self.scopes.pop()
+    

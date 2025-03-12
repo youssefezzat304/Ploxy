@@ -1,5 +1,5 @@
 from Token import Token
-from Expr import Expr, Binary, Unary, Literal, Grouping, Variable, Assign, Logical, Call, Get, Set, This
+from Expr import Expr, Binary, Unary, Literal, Grouping, Variable, Assign, Logical, Call, Get, Set, This, Super
 from TokenType import TokenType
 from Stmt import Stmt, Expression, Print, Var, Block, If, While, Function, Return, Class
 
@@ -94,6 +94,12 @@ class Parser:
     
   def __classDeclaration(self) -> Stmt:
     name: Token = self.__consume(TokenType.IDENTIFIER, "Expect class name.")
+    
+    superclass: Variable = None
+    if self.__match(TokenType.LESS):
+      self.__consume(TokenType.IDENTIFIER, "Expect superclass name.")
+      superclass = Variable(self.__previous())
+      
     self.__consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")
     
     methods: list[Function] = []
@@ -102,7 +108,7 @@ class Parser:
       
     self.__consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.")
     
-    return Class(name, methods)
+    return Class(name, superclass, methods)
     
   def __varDeclaration(self) -> Stmt:
     name: Token = self.__consume(TokenType.IDENTIFIER, "Expect variable name.")
@@ -303,6 +309,12 @@ class Parser:
     if self.__match(TokenType.NUMBER, TokenType.STRING):
       return Literal(self.__previous().literal)
     
+    if self.__match(TokenType.SUPER):
+      keyword: Token = self.__previous()
+      self.__consume(TokenType.DOT, "Expect '.' after 'super'.")
+      method: Token = self.__consume(TokenType.IDENTIFIER, "Expect superclass method name.")
+      return Super(keyword, method)
+    
     if self.__match(TokenType.THIS): return This(self.__previous())
     
     if self.__match(TokenType.IDENTIFIER):
@@ -315,7 +327,7 @@ class Parser:
     
     raise self.__error(self.__peek(), "Expect expression.")
     
-  def __consume(self, type:TokenType, message:str) -> Token:
+  def __consume(self, type: TokenType, message:str) -> Token:
     if self.__check(type):
       return self.__advance()
     raise self.__error(self.__peek(), message)

@@ -1,8 +1,12 @@
+from typing import TYPE_CHECKING
 from LoxCallable import LoxCallable
 from Stmt import Function
 from Environment import Environment
-from LoxInstance import LoxInstance
 from Return import Return
+
+if TYPE_CHECKING:
+  from LoxInstance import LoxInstance
+  from Interpreter import Interpreter
 
 class LoxFunction(LoxCallable):
   def __init__(self, declaration: Function, closure: Environment, isInitializer: bool) -> None:
@@ -10,7 +14,7 @@ class LoxFunction(LoxCallable):
     self.closure: Environment = closure
     self.declaration: Function = declaration
     
-  def bind(self, instance: LoxInstance):
+  def bind(self, instance: 'LoxInstance') -> 'LoxFunction':
     environment: Environment = Environment(self.closure)
     environment.define("this", instance)
     return LoxFunction(self.declaration, environment, self.isInitializer)
@@ -18,7 +22,7 @@ class LoxFunction(LoxCallable):
   def arity(self) -> int:
     return len(self.declaration.params)
   
-  def call(self, interpreter, arguments: list[any]) -> any:
+  def call(self, interpreter: 'Interpreter', arguments: list[any]) -> any:
     environment: Environment = Environment(self.closure)
     for i, param in enumerate(self.declaration.params):
       environment.define(param.lexeme, arguments[i])

@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 from Expr import Expr, Literal, Grouping, Unary, Binary, Variable, Assign, Logical, Call, Get, Set, Super, This
 from TokenType import TokenType
 from Token import Token
@@ -9,6 +10,9 @@ from Return import Return
 from LoxClass import LoxClass
 from LoxInstance import LoxInstance
 import time
+
+if TYPE_CHECKING:
+  from LoxFunction import LoxFunction
 
 class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
   def __init__(self) -> None:
@@ -92,8 +96,7 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     self.__evaluate(stmt.expression)
     return None
   
-  def visitFunctionStmt(self, stmt:Function) -> None:
-    from LoxFunction import LoxFunction
+  def visitFunctionStmt(self, stmt:Function) -> None: 
     function: LoxFunction = LoxFunction(stmt, self.environment, False)
     self.environment.define(stmt.name.lexeme, function)
     return None
@@ -123,15 +126,28 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     return None
   
   def visitClassStmt(self, stmt: Class) -> None:
-    from LoxFunction import LoxFunction
+    superclass: any = None
+    if stmt.superclass != None:
+      superclass = self.__evaluate(stmt.superclass)
+      if not isinstance(superclass, LoxClass):
+        raise RuntimeException(stmt.superclass.name, "Superclass must be a class.")
+      
     self.environment.define(stmt.name.lexeme, None)
+    
+    if stmt.superclass != None:
+      self.environment = Environment(self.environment)
+      self.environment.define("super", superclass)
     
     methods: dict[str, LoxFunction] = {}
     for method in stmt.methods:
       function: LoxFunction = LoxFunction(method, self.environment, method.name.lexeme == "init")
       methods[method.name.lexeme] = function
       
-    Klass: LoxClass = LoxClass(stmt.name.lexeme, methods)
+    Klass: LoxClass = LoxClass(stmt.name.lexeme, superclass, methods)
+    
+    if superclass != None:
+      self.environment = self.environment.enclosing
+      
     self.environment.assign(stmt.name, Klass)
     return None
   
@@ -204,8 +220,18 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     object.set(expr.name, value)
     return value
       
-  def visitSuperExpr(self, expr):
-    pass  # TODO Implement later
+  def visitSuperExpr(self, expr: Super) -> any:
+    distance: int = self.locals.get(expr)
+    superclass: LoxClass = self.environment.getAt(distance, "super")
+    
+    object: LoxInstance = self.environment.getAt(distance - 1, "this")
+    
+    method: LoxFunction = superclass.findMethod(expr.method.lexeme)
+    
+    if method == None:
+      raise RuntimeException(expr.method, f"Undefined property '{expr.method.lexeme}'.")
+    
+    return method.bind(object)
 
   def visitThisExpr(self, expr: This) -> any:
     return self.__lookUpVariable(expr.keyword, expr)
