@@ -10,3 +10,6 @@ lox/
 __pycache__/
 Ploxy.egg-info/
 .idea/
+.vscode/
+output/
+*.exe
