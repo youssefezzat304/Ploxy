@@ -13,7 +13,7 @@ void Chunk::clear()
   constants.clear();
 }
 
-const std::vector<uint8_t> &Chunk::getCode() const
+std::vector<uint8_t> &Chunk::getCode()
 {
   return code;
 }

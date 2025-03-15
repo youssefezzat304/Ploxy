@@ -1,6 +1,6 @@
 #include "debug.hpp"
 
-void Disassembler::disassembleChunk(const Chunk &chunk, const std::string &name)
+void Disassembler::disassembleChunk(Chunk &chunk, const std::string &name)
 {
   std::cout << "== " << name << " ==\n";
   const std::vector<uint8_t> &code = chunk.getCode();
@@ -11,7 +11,7 @@ void Disassembler::disassembleChunk(const Chunk &chunk, const std::string &name)
   }
 }
 
-int Disassembler::disassembleInstruction(const Chunk &chunk, int offset)
+int Disassembler::disassembleInstruction(Chunk &chunk, int offset)
 {
   const std::vector<uint8_t> &code = chunk.getCode();
   const std::vector<int> &lines = chunk.getLines();
@@ -31,9 +31,19 @@ int Disassembler::disassembleInstruction(const Chunk &chunk, int offset)
   uint8_t instruction = code[offset];
   switch (instruction)
   {
-  case static_cast<uint8_t>(OpCode::OP_CONSTANT):
+  case OP_CONSTANT:
     return constantInstruction("OP_CONSTANT", chunk, offset);
-  case static_cast<uint8_t>(OpCode::OP_RETURN):
+  case OP_ADD:
+    return simpleInstruction("OP_ADD", offset);
+  case OP_SUBTRACT:
+    return simpleInstruction("OP_SUBTRACT", offset);
+  case OP_MULTIPLY:
+    return simpleInstruction("OP_MULTIPLY", offset);
+  case OP_DIVIDE:
+    return simpleInstruction("OP_DIVIDE", offset);
+  case OP_NEGATE:
+    return simpleInstruction("OP_NEGATE", offset);
+  case OP_RETURN:
     return simpleInstruction("OP_RETURN", offset);
   default:
     std::cout << "Unknown opcode: " << static_cast<int>(instruction) << "\n";
@@ -47,7 +57,7 @@ int Disassembler::simpleInstruction(const std::string &name, int offset)
   return offset + 1;
 }
 
-int Disassembler::constantInstruction(const std::string &name, const Chunk &chunk, int offset)
+int Disassembler::constantInstruction(const std::string &name, Chunk &chunk, int offset)
 {
   uint8_t constant = chunk.getCode()[offset + 1];
   std::cout << std::left << name << std::right << static_cast<int>(constant) << " '";

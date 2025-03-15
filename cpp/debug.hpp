@@ -8,10 +8,10 @@
 class Disassembler
 {
 public:
-  void disassembleChunk(const Chunk &chunk, const std::string &name);
-  int disassembleInstruction(const Chunk &chunk, int offset);
+  void disassembleChunk(Chunk &chunk, const std::string &name);
+  int disassembleInstruction(Chunk &chunk, int offset);
   static int simpleInstruction(const std::string &name, int offset);
-  static int constantInstruction(const std::string &name, const Chunk &chunk, int offset);
+  static int constantInstruction(const std::string &name, Chunk &chunk, int offset);
 };
 
 #endif

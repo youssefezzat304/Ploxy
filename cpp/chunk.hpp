@@ -5,9 +5,14 @@
 #include "value.hpp"
 #include <vector>
 
-enum class OpCode
+enum OpCode
 {
   OP_CONSTANT,
+  OP_ADD,
+  OP_SUBTRACT,
+  OP_MULTIPLY,
+  OP_DIVIDE,
+  OP_NEGATE,
   OP_RETURN,
 };
 
@@ -16,7 +21,7 @@ class Chunk
 public:
   void writeChunk(uint8_t byte, int line);
   int addConstant(Value value);
-  const std::vector<uint8_t> &getCode() const;
+  std::vector<uint8_t> &getCode();
   const std::vector<int> &getLines() const;
   const ValueArray &getConstants() const;
   void clear();
