@@ -29,14 +29,6 @@ ploxy run
 
 To exit the interactive mode, type `exit`.
 
-### Running a Script
-
-To run a Lox script:
-
-```bash
-ploxy run yourscript.lox
-```
-
 ## REPL Capabilities
 
 ### Basic Operations
