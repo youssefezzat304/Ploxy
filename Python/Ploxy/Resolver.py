@@ -1,8 +1,8 @@
-from Expr import Expr, Variable, Assign, Binary, Grouping, Call, Literal, Logical, Unary, Get, Set, Super, This
-from Stmt import Stmt, Block, Var, Function, Expression, If, Print, While, Return, Class
-from Interpreter import Interpreter
+from .Expr import Expr, Variable, Assign, Binary, Grouping, Call, Literal, Logical, Unary, Get, Set, Super, This
+from .Stmt import Stmt, Block, Var, Function, Expression, If, Print, While, Return, Class
+from .Interpreter import Interpreter
 from collections import deque
-from Token import Token
+from .Token import Token
 from enum import Enum
 
 class FunctionType(Enum):

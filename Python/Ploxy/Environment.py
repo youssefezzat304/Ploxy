@@ -1,5 +1,5 @@
-from Token import Token
-from RuntimeError import RuntimeException
+from .Token import Token
+from .RuntimeError import RuntimeException
 
 class Environment:
   def __init__(self, enclosing = None) -> None:

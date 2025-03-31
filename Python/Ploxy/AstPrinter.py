@@ -1,4 +1,4 @@
-from Expr import Expr
+from .Expr import Expr
 
 class AstPrinter(Expr.Visitor[str]):
        

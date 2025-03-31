@@ -1,6 +1,6 @@
 from typing import Optional
-from Token import Token
-from TokenType import TokenType
+from .Token import Token
+from .TokenType import TokenType
 
 class Scanner:
   def __init__(self, source: str) -> None:

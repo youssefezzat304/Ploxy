@@ -1,6 +1,6 @@
-from LoxClass import LoxClass
-from Token import Token
-from RuntimeError import RuntimeException
+from .LoxClass import LoxClass
+from .Token import Token
+from .RuntimeError import RuntimeException
 
 class LoxInstance:
   def __init__(self, Klass: LoxClass) -> None:
@@ -8,7 +8,7 @@ class LoxInstance:
     self.fields: dict[str, any] = {}
     
   def get(self, name: Token) -> any:
-    from LoxFunction import LoxFunction
+    from .LoxFunction import LoxFunction
     if name.lexeme in self.fields:
       return self.fields.get(name.lexeme)
     

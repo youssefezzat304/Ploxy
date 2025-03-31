@@ -1,4 +1,4 @@
-from Token import Token
+from .Token import Token
 
 class RuntimeException(Exception):
   def __init__(self, token: Token, message: str) -> None:

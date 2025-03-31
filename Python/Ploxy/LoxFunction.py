@@ -1,12 +1,12 @@
 from typing import TYPE_CHECKING
-from LoxCallable import LoxCallable
-from Stmt import Function
-from Environment import Environment
-from Return import Return
+from .LoxCallable import LoxCallable
+from .Stmt import Function
+from .Environment import Environment
+from .Return import Return
 
 if TYPE_CHECKING:
-  from LoxInstance import LoxInstance
-  from Interpreter import Interpreter
+  from .LoxInstance import LoxInstance
+  from .Interpreter import Interpreter
 
 class LoxFunction(LoxCallable):
   def __init__(self, declaration: Function, closure: Environment, isInitializer: bool) -> None:

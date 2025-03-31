@@ -1,12 +1,12 @@
 import sys
-from Scanner import Scanner
-from Token import Token
-from TokenType import TokenType
-from Parser import Parser
-from RuntimeError import RuntimeException
-from Interpreter import Interpreter
-from Stmt import Stmt
-from Resolver import Resolver
+from .Scanner import Scanner
+from .Token import Token
+from .TokenType import TokenType
+from .Parser import Parser
+from .RuntimeError import RuntimeException
+from .Interpreter import Interpreter
+from .Stmt import Stmt
+from .Resolver import Resolver
 
 class Lox:
   interpreter: Interpreter = Interpreter()
@@ -28,7 +28,7 @@ class Lox:
   def runPrompt() -> None:
     while True:
       line: str = input(">> ")
-      if line is None:
+      if line is None or line.lower() == "exit":
         break
       Lox.__run(line)
       

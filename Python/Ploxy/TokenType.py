@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Tuple, Dict
 
 class TokenType(Enum):
     # Single-character tokens

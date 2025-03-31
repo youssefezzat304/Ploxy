@@ -1,7 +1,7 @@
-from Token import Token
-from Expr import Expr, Binary, Unary, Literal, Grouping, Variable, Assign, Logical, Call, Get, Set, This, Super
-from TokenType import TokenType
-from Stmt import Stmt, Expression, Print, Var, Block, If, While, Function, Return, Class
+from .Token import Token
+from .Expr import Expr, Binary, Unary, Literal, Grouping, Variable, Assign, Logical, Call, Get, Set, This, Super
+from .TokenType import TokenType
+from .Stmt import Stmt, Expression, Print, Var, Block, If, While, Function, Return, Class
 
 class Parser:
   class ParseError(Exception):

@@ -1,15 +1,15 @@
 from typing import TYPE_CHECKING
-from Expr import Expr, Literal, Grouping, Unary, Binary, Variable, Assign, Logical, Call, Get, Set, Super, This
-from TokenType import TokenType
-from Token import Token
-from RuntimeError import RuntimeException
-from Stmt import Stmt, Expression, Print, Var, Block, If, While, Function, Return, Class
-from Environment import Environment
-from LoxCallable import LoxCallable
-from Return import Return
-from LoxClass import LoxClass
-from LoxInstance import LoxInstance
 import time
+from .Expr import Expr, Literal, Grouping, Unary, Binary, Variable, Assign, Logical, Call, Get, Set, Super, This
+from .TokenType import TokenType
+from .Token import Token
+from .RuntimeError import RuntimeException
+from .Stmt import Stmt, Expression, Print, Var, Block, If, While, Function, Return, Class
+from .Environment import Environment
+from .LoxCallable import LoxCallable
+from .Return import Return
+from .LoxClass import LoxClass
+from .LoxInstance import LoxInstance
 
 if TYPE_CHECKING:
   from LoxFunction import LoxFunction

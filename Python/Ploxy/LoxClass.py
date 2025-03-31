@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
-from LoxCallable import LoxCallable
-from LoxFunction import LoxFunction
+from .LoxCallable import LoxCallable
+from .LoxFunction import LoxFunction
 
 if TYPE_CHECKING:
   from Interpreter import Interpreter

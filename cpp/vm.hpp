@@ -4,6 +4,7 @@
 #include "chunk.hpp"
 #include "value.hpp"
 #include <memory>
+#include <string>
 
 const int STACK_MAX = 256;
 
@@ -20,6 +21,8 @@ public:
   VM() = default;
 
   InterpretResult interpret(Chunk *chunk);
+  InterpretResult interpret(const std::string *source);
+  void runFile(const char *path);
   void push(Value value);
   Value pop();
   void binary_op(char op);

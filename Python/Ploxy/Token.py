@@ -1,5 +1,5 @@
-from TokenType import TokenType
 from typing import Any
+from .TokenType import TokenType
 
 class Token:
   def __init__(self, type: TokenType, lexeme: str, literal: Any, line: int) -> None:

@@ -1,6 +1,9 @@
 #include "vm.hpp"
 #include "common.hpp"
+#include "scanner.hpp"
 #include <iostream>
+#include <fstream>
+#include <vector>
 
 constexpr bool DEBUG_TRACE_EXECUTION = true;
 void log(const std::string &message)
@@ -8,11 +11,41 @@ void log(const std::string &message)
   std::cout << message << "\n";
 }
 
-InterpretResult VM::interpret(Chunk *chunk)
+std::string readFile(const std::string &path)
 {
-  this->chunk = chunk;
-  this->ip = chunk->getCode().data();
-  return run();
+  std::ifstream file(path, std::ios::binary | std::ios::ate);
+  if (!file)
+  {
+    throw std::runtime_error("Could not open file: " + path);
+  }
+
+  std::streamsize fileSize = file.tellg();
+  file.seekg(0, std::ios::beg);
+
+  std::vector<char> buffer(fileSize);
+  if (!file.read(buffer.data(), fileSize))
+  {
+    throw std::runtime_error("Could not read file: " + path);
+  }
+
+  return std::string(buffer.begin(), buffer.end());
+}
+
+void VM::runFile(const char *path)
+{
+  std::string source = readFile(path);
+  InterpretResult result = interpret(&source);
+
+  if (result == INTERPRET_COMPILE_ERROR)
+    exit(65);
+  if (result == INTERPRET_RUNTIME_ERROR)
+    exit(70);
+}
+
+InterpretResult VM::interpret(const std::string *source)
+{
+  Scanner scanner(*source);
+  return INTERPRET_OK;
 }
 
 void VM::push(Value value)
